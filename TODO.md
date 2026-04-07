@@ -25,9 +25,9 @@ Scale: H = 8, M = 5, S = 3, L = 1 for Value/Criticality/Risk. S = 2, M = 5, L = 
 |----------|------|----------|---------------|-----------------|-----------------|----------|------|--------|-------------|
 | 2 | Build voice chat mobile UI screen | Feature | H | M | M | L | 8.0 | ready | Backend routes in `server/replit_integrations/audio` are complete; needs Expo screen + expo-av recording |
 | 3 | Wire read/unread story indicators into UI | Feature | M | S | S | S | 5.5 | complete | `getReadStories`/`markStoryRead` wired into library screen + completion screen |
-| 4 | Wire story feedback/rating UI | Feature | M | S | S | S | 5.5 | ready | `updateFeedback` in `lib/storage.ts` is unused; needs star rating or emoji reaction in completion screen |
-| 5 | Reuse `HeroCard.tsx` in hero selection | Feature | S | S | S | S | 4.5 | ready | `components/HeroCard.tsx` exists but is not rendered anywhere; use in quick-create or profile screen |
-| 6 | Add `KeyboardAwareScrollView` to input forms | Feature | M | M | S | S | 5.5 | ready | `react-native-keyboard-controller` is installed; story-details.tsx and sleep-setup.tsx have inputs that get obscured by keyboard |
+| 4 | Wire story feedback/rating UI | Feature | M | S | S | S | 5.5 | complete | Emoji reactions (😍/😊/🤔) added to completion screen; calls `updateFeedback` in `lib/storage.ts` |
+| 5 | Reuse `HeroCard.tsx` in hero selection | Feature | S | S | S | S | 4.5 | complete | `HeroCard` grid replaces chip scroll in `app/(tabs)/create.tsx` |
+| 6 | Add `KeyboardAwareScrollView` to input forms | Feature | M | M | S | S | 5.5 | complete | Already wired in `story-details.tsx`, `sleep-setup.tsx`, and `quick-create.tsx` |
 
 ### Tech Debt
 
