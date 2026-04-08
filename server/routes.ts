@@ -10,6 +10,7 @@ import { sanitizeString, StoryRequestSchema, AvatarRequestSchema, SceneRequestSc
 import { getStorySystemPrompt, getStoryUserPrompt, getPartCount, getWordCount, getRandomStyle, STORY_RESPONSE_SCHEMA } from "./prompts";
 import { checkRateLimit, cleanupExpiredEntries } from "./rate-limit";
 import { toErrorMessage, classifyError, createErrorResponse } from "./utils";
+import { getFeatureFlags, isFeatureEnabled } from "./feature-flags";
 import { logger } from "./logger";
 import { IdempotencyCache } from "./idempotency";
 import { TtsCacheManager } from "./tts-cache";
@@ -59,6 +60,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       timestamp: Date.now(),
       aiProvidersAvailable: aiAvailable,
       ttsAvailable,
+      features: getFeatureFlags(),
+    });
+  });
+
+  app.get("/privacy", (_req, res) => {
+    const privacyPath = path.resolve(process.cwd(), "server", "templates", "privacy-policy.html");
+    res.sendFile(privacyPath, (err) => {
+      if (err && !res.headersSent) {
+        res.status(404).json({ error: "Privacy policy not found" });
+      }
     });
   });
 
@@ -416,10 +427,16 @@ Style: ${sceneStyle}. Wide landscape composition, magical atmosphere, child-safe
   });
 
   app.get("/api/video-available", (_req, res) => {
+    if (!isFeatureEnabled('videoEnabled')) {
+      return res.json({ available: false });
+    }
     res.json({ available: isVideoAvailable() });
   });
 
   app.post("/api/generate-video", async (req, res) => {
+    if (!isFeatureEnabled('videoEnabled')) {
+      return res.status(404).json({ error: "Video generation is not available" });
+    }
     const clientIp = req.user?.uid || req.ip || req.socket.remoteAddress || "unknown";
     if (!checkRateLimit(clientIp)) {
       return res.status(429).json({ error: "Too many requests. Please wait a moment." });
@@ -517,7 +534,7 @@ Style: ${sceneStyle}. Wide landscape composition, magical atmosphere, child-safe
   });
 
   // Register voice chat & conversation routes (replit_integrations)
-  if (process.env.AI_INTEGRATIONS_OPENAI_API_KEY && process.env.DATABASE_URL) {
+  if (process.env.AI_INTEGRATIONS_OPENAI_API_KEY && process.env.DATABASE_URL && isFeatureEnabled('voiceChatEnabled')) {
     registerAudioRoutes(app);
     logger.info('voice chat & conversation routes registered');
   }
