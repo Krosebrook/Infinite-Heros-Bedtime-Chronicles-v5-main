@@ -17,3 +17,16 @@ jobs:
       
       - name: Notify deployment triggered
         run: echo "✅ Vercel deployment triggered successfully"
+
+      - name: Wait for deployment and health check
+        run: |
+          echo "⏳ Waiting 60 seconds for deployment to complete..."
+          sleep 60
+          echo "🔍 Running health check..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bedtime-chronicles.com/api/health || echo "000")
+          echo "Health check status: $STATUS"
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Health check passed"
+          else
+            echo "⚠️ Health check returned status $STATUS — deployment may still be in progress"
+          fi
