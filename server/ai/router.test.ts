@@ -360,4 +360,61 @@ describe('AIRouter', () => {
       expect(result.provider).toBe('openai');
     });
   });
+
+  describe('circuit breaker integration', () => {
+    it('opens circuit after consecutive failures and skips the provider', async () => {
+      const cbRouter = new AIRouter({ circuitBreakerThreshold: 2, circuitBreakerResetMs: 10_000 });
+
+      let anthropicCallCount = 0;
+      const failingProvider = createMockProvider({
+        name: 'anthropic',
+        generateText: vi.fn().mockImplementation(() => {
+          anthropicCallCount++;
+          return Promise.reject(new Error('provider down'));
+        }),
+      });
+      const fallbackProvider = createMockProvider({ name: 'gemini' });
+      cbRouter.registerProvider(failingProvider);
+      cbRouter.registerProvider(fallbackProvider);
+
+      // First 2 calls: anthropic fails, falls back to gemini
+      await cbRouter.generateText('story', DEFAULT_REQUEST);
+      await cbRouter.generateText('story', DEFAULT_REQUEST);
+      expect(anthropicCallCount).toBe(2);
+
+      // Third call: anthropic circuit open, goes straight to gemini
+      anthropicCallCount = 0;
+      await cbRouter.generateText('story', DEFAULT_REQUEST);
+      expect(anthropicCallCount).toBe(0);
+    });
+
+    it('recovers when circuit goes half-open and call succeeds', async () => {
+      vi.useFakeTimers();
+      const cbRouter = new AIRouter({ circuitBreakerThreshold: 2, circuitBreakerResetMs: 1000 });
+
+      let shouldFail = true;
+      const provider = createMockProvider({
+        name: 'anthropic',
+        generateText: vi.fn().mockImplementation(() => {
+          if (shouldFail) return Promise.reject(new Error('down'));
+          return Promise.resolve({ text: 'ok', provider: 'anthropic' as const, model: 'm' });
+        }),
+      });
+      const fallback = createMockProvider({ name: 'gemini' });
+      cbRouter.registerProvider(provider);
+      cbRouter.registerProvider(fallback);
+
+      // Trip the circuit
+      await cbRouter.generateText('story', DEFAULT_REQUEST);
+      await cbRouter.generateText('story', DEFAULT_REQUEST);
+
+      // Wait for half-open
+      vi.advanceTimersByTime(1001);
+      shouldFail = false;
+
+      const result = await cbRouter.generateText('story', DEFAULT_REQUEST);
+      expect(result.provider).toBe('anthropic');
+      vi.useRealTimers();
+    });
+  });
 });

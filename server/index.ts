@@ -2,10 +2,11 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { isAuthEnabled } from "./auth";
+import { logger, createRequestId } from "./logger";
 import * as fs from "fs";
 import * as path from "path";
 
-const log = console.log;
+const log = logger.info.bind(logger);
 
 function validateEnvironment() {
   const providerPairs: [string, string, string][] = [
@@ -58,6 +59,8 @@ function validateEnvironment() {
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
+    requestId?: string;
+    log?: import('pino').Logger;
   }
 }
 
@@ -145,31 +148,19 @@ function setupBodyParsing(app: express.Application) {
 
 function setupRequestLogging(app: express.Application) {
   app.use((req, res, next) => {
-    const start = Date.now();
-    const path = req.path;
-    let capturedJsonResponse: Record<string, unknown> | undefined = undefined;
+    const requestId = (req.headers['x-request-id'] as string) || createRequestId();
+    req.requestId = requestId;
+    req.log = logger.child({ requestId });
+    res.setHeader('x-request-id', requestId);
 
-    const originalResJson = res.json;
-    res.json = function (bodyJson, ...args) {
-      capturedJsonResponse = bodyJson;
-      return originalResJson.apply(res, [bodyJson, ...args]);
-    };
+    const start = Date.now();
+    const reqPath = req.path;
 
     res.on("finish", () => {
-      if (!path.startsWith("/api")) return;
+      if (!reqPath.startsWith("/api")) return;
 
       const duration = Date.now() - start;
-
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
+      req.log!.info({ method: req.method, path: reqPath, status: res.statusCode, duration }, 'request completed');
     });
 
     next();
@@ -228,8 +219,7 @@ function serveLandingPage({
   const expsUrl = `${host}`;
 
   if (process.env.NODE_ENV !== "production") {
-    log(`baseUrl`, baseUrl);
-    log(`expsUrl`, expsUrl);
+    logger.info({ baseUrl, expsUrl }, 'serving landing page');
   }
 
   const html = landingPageTemplate
@@ -327,7 +317,7 @@ function setupErrorHandler(app: express.Application) {
 
     const message = sanitizeErrorMessage(err);
 
-    console.error("Internal Server Error:", err);
+    logger.error({ err, status }, 'unhandled server error');
 
     if (res.headersSent) {
       return next(err);

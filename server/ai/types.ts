@@ -12,6 +12,8 @@ export interface TextGenerationRequest {
   responseSchema?: Record<string, unknown>;
   /** Abort if the provider doesn't respond within this many milliseconds. */
   timeoutMs?: number;
+  /** Correlation ID for structured logging. */
+  requestId?: string;
 }
 
 export interface TextGenerationResponse {
