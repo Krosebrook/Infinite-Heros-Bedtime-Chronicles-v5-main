@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Minimal permissions — this workflow only reads code and uploads artifacts.
+permissions:
+  contents: read
+
 jobs:
   lint-and-test:
     name: Lint and Test

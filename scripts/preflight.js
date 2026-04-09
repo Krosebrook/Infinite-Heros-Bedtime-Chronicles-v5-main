@@ -84,9 +84,16 @@ if (existsSync(patchesDir)) {
         continue;
       }
       const patchedVersion = parts[parts.length - 1];
-      // Reconstruct npm package name (@ scope uses @ prefix)
-      const pkgNameRaw = parts.slice(0, -1).join('/');
-      const pkgName = pkgNameRaw.startsWith('@') ? pkgNameRaw : pkgNameRaw.replace(/^@/, '');
+      // Reconstruct npm package name.
+      // patch-package encodes scoped packages as: @scope+name+version.patch
+      // so @scope+name needs the first '+' replaced with '/' to get @scope/name.
+      let pkgName;
+      if (withoutExt.startsWith('@')) {
+        const nameRaw = parts.slice(0, -1).join('+'); // e.g. "@scope+name"
+        pkgName = nameRaw.replace('+', '/');           // "@scope/name"
+      } else {
+        pkgName = parts.slice(0, -1).join('+');
+      }
 
       try {
         const installedPkgPath = join(root, 'node_modules', pkgName, 'package.json');
