@@ -133,10 +133,15 @@ const aiProviderKeys = [
 ];
 const missingAiKeys = aiProviderKeys.filter((k) => !process.env[k]);
 if (missingAiKeys.length === aiProviderKeys.length) {
-  fail(
+  const msg =
     'No AI provider key is set. At least one of the following must be configured in Vercel Environment Variables:\n' +
-      aiProviderKeys.map((k) => `    • ${k}`).join('\n'),
-  );
+    aiProviderKeys.map((k) => `    • ${k}`).join('\n');
+  if (process.env.CI) {
+    // In CI there are no runtime env vars — this is expected. Warn only.
+    console.warn(`  ⚠  WARN: ${msg}`);
+  } else {
+    fail(msg);
+  }
 } else {
   const present = aiProviderKeys.filter((k) => !!process.env[k]);
   pass(`AI provider key(s) present: ${present.join(', ')}`);
