@@ -28,9 +28,8 @@ export function validateMadlibWords(input: unknown): Record<string, string> | un
 
 /** Zod transform that truncates a string to maxLen and trims. */
 function truncated(maxLen: number, message?: string) {
-  return message
-    ? z.string({ message }).transform((s) => s.slice(0, maxLen).trim())
-    : z.string().transform((s) => s.slice(0, maxLen).trim());
+  const transform = (s: string) => s.slice(0, maxLen).trim();
+  return message ? z.string({ message }).transform(transform) : z.string().transform(transform);
 }
 
 /** Optional truncated string that becomes undefined when empty. */
