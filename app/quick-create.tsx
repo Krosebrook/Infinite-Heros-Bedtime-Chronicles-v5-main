@@ -20,7 +20,6 @@ import { StarField } from "@/components/StarField";
 import Colors from "@/constants/colors";
 import { HEROES } from "@/constants/heroes";
 import { HeroCard } from "@/components/HeroCard";
-import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 
 const THEMES = [
   {
@@ -310,7 +309,7 @@ export default function QuickCreateScreen() {
       >
         <LinearGradient
           colors={["transparent", "rgba(2,2,26,0.98)"]}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
         <View style={styles.selectedInfo}>
           <Text style={styles.selectedInfoEmoji}>{selectedThemeData.emoji}</Text>

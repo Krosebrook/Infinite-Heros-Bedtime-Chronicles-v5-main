@@ -9,8 +9,10 @@ const MAX_TITLE_LENGTH = 200;
 const MAX_AUDIO_SIZE_BYTES = 25 * 1024 * 1024; // 25MB
 const VALID_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
 
-function parseIdParam(raw: string): number | null {
-  const id = parseInt(raw, 10);
+function parseIdParam(raw: string | string[]): number | null {
+  const str = Array.isArray(raw) ? raw[0] : raw;
+  if (!str) return null;
+  const id = parseInt(str, 10);
   return Number.isFinite(id) && id > 0 ? id : null;
 }
 

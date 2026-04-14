@@ -19,7 +19,6 @@ import * as Haptics from "expo-haptics";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import Colors from "@/constants/colors";
 import { useProfile } from "@/lib/ProfileContext";
-import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 
 type IoniconsName = ComponentProps<typeof Ionicons>["name"];
 
@@ -412,7 +411,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   heroImageOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   backBtn: {
     position: "absolute",
@@ -689,7 +688,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   bottomCTAGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     height: 120,
   },
   ctaButton: {

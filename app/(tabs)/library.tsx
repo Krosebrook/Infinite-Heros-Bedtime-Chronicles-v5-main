@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   storyOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   topLeftBadges: {
     position: "absolute",

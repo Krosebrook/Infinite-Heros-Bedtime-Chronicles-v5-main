@@ -4,8 +4,6 @@ import path from 'path';
 export default defineConfig({
   resolve: {
     alias: {
-      // Zod 3.25+ has broken ESM exports on Windows — force CJS entry
-      zod: path.resolve(__dirname, 'node_modules/zod/index.cjs'),
       '@': path.resolve(__dirname, '.'),
       '@shared': path.resolve(__dirname, './shared'),
     },

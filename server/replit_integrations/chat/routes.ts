@@ -10,8 +10,10 @@ const openai = new OpenAI({
 const MAX_TITLE_LENGTH = 200;
 const MAX_MESSAGE_LENGTH = 10000;
 
-function parseIdParam(raw: string): number | null {
-  const id = parseInt(raw, 10);
+function parseIdParam(raw: string | string[]): number | null {
+  const str = Array.isArray(raw) ? raw[0] : raw;
+  if (!str) return null;
+  const id = parseInt(str, 10);
   return Number.isFinite(id) && id > 0 ? id : null;
 }
 
