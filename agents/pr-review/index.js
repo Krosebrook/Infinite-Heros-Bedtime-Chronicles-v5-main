@@ -37,8 +37,10 @@ let additions = 0;
 let deletions = 0;
 for (const line of numstatRaw.split('\n').filter(Boolean)) {
   const [add, del] = line.split('\t');
-  const addNum = Number.isNaN(Number(add)) ? 0 : Number(add);
-  const delNum = Number.isNaN(Number(del)) ? 0 : Number(del);
+  const addParsed = Number(add);
+  const delParsed = Number(del);
+  const addNum = Number.isNaN(addParsed) ? 0 : addParsed;
+  const delNum = Number.isNaN(delParsed) ? 0 : delParsed;
   additions += addNum;
   deletions += delNum;
 }

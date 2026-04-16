@@ -15,11 +15,29 @@ const outputPath =
     : 'agents/security/security-report.json';
 
 const ignoreSet = new Set(config.ignoreDirectories || []);
-const maxFileSizeBytes = Number(config.maxFileSizeBytes || 1048576);
+const parsedMaxSize = Number.parseInt(String(config.maxFileSizeBytes ?? 1048576), 10);
+const maxFileSizeBytes = Number.isFinite(parsedMaxSize) && parsedMaxSize > 0 ? parsedMaxSize : 1048576;
 const patterns = (config.secretPatterns || []).map((pattern) => ({
   id: pattern.id,
   regex: new RegExp(pattern.regex, 'g'),
 }));
+const ignoreExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.mp3', '.mp4', '.ico']);
+const ignoreGlobs = config.ignoreGlobs || [];
+
+function shouldIgnoreByGlob(relPath) {
+  return ignoreGlobs.some((globPattern) => {
+    if (globPattern === '**/*.md') {
+      return relPath.endsWith('.md');
+    }
+    if (globPattern === '**/*.test.ts') {
+      return relPath.endsWith('.test.ts');
+    }
+    if (globPattern === '**/*.spec.ts') {
+      return relPath.endsWith('.spec.ts');
+    }
+    return false;
+  });
+}
 
 function isTextContent(buffer) {
   return !buffer.includes(0);
@@ -41,6 +59,12 @@ function walkDirectory(dirPath, files) {
     }
 
     if (entry.isFile()) {
+      if (ignoreExtensions.has(path.extname(entry.name).toLowerCase())) {
+        continue;
+      }
+      if (shouldIgnoreByGlob(relPath)) {
+        continue;
+      }
       files.push(fullPath);
     }
   }
