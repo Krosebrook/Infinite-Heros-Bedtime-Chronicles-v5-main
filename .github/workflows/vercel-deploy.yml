@@ -1,0 +1,41 @@
+name: Vercel Deploy Hook
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  HEALTH_CHECK_URL: "https://bedtime-chronicles.com/api/health"
+  VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+
+jobs:
+  trigger-vercel-deploy:
+    name: Trigger Vercel Deployment
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger Vercel Deploy Hook
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "❌ Missing VERCEL_DEPLOY_HOOK_URL secret"
+            exit 1
+          fi
+          curl -fsS -X POST "$VERCEL_DEPLOY_HOOK_URL"
+      
+      - name: Notify deployment triggered
+        run: echo "✅ Vercel deployment triggered successfully"
+
+      - name: Wait for deployment and health check
+        run: |
+          echo "⏳ Waiting 60 seconds for deployment to complete..."
+          sleep 60
+          echo "🔍 Running health check against $HEALTH_CHECK_URL..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_CHECK_URL" || echo "000")
+          echo "Health check status: $STATUS"
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Health check passed"
+          else
+            echo "❌ Health check failed with status $STATUS"
+            exit 1
+          fi
