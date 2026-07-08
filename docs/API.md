@@ -8,10 +8,10 @@ All endpoints return JSON unless otherwise noted. Rate limiting applies to all P
 
 ## Authentication
 
-All POST endpoints require a valid Firebase Auth token in the `Authorization: Bearer <token>` header.
+All POST endpoints require a valid Supabase access token (JWT) in the `Authorization: Bearer <token>` header.
 
-- **Dev mode**: If `FIREBASE_SERVICE_ACCOUNT_KEY` is not set, auth is bypassed and requests are accepted without tokens.
-- **Production**: The server validates tokens using Firebase Admin SDK. Invalid/expired tokens return `401 Unauthorized`.
+- **Dev mode**: If `SUPABASE_SERVICE_ROLE_KEY` (+ Supabase URL) is not set, auth is bypassed and requests are accepted without tokens.
+- **Production**: The server validates tokens via the Supabase service-role client (`supabase.auth.getUser`). Invalid/expired tokens return `401 Unauthorized`; if Supabase is unconfigured in production, auth-gated routes return `503`.
 - **GET endpoints** (`/api/health`, `/api/voices`, `/api/ai-providers`, etc.) do not require authentication.
 
 Rate limiting uses the authenticated user's UID when available, falling back to IP-based limiting.
@@ -424,5 +424,5 @@ All errors follow this format:
 | 404 | Resource not found |
 | 429 | Rate limit exceeded |
 | 500 | Internal server error |
-| 401 | Unauthorized (missing/invalid Firebase Auth token) |
+| 401 | Unauthorized (missing/invalid Supabase access token) |
 | 503 | Service unavailable |

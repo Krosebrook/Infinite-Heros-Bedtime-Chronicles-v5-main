@@ -24,15 +24,16 @@ shared across client and server.
 **Three deploy targets, same codebase:**
 - **Replit** — primary dev/runtime (`.replit`, `replit.md`; `expo:dev` wires `REPLIT_DEV_DOMAIN`).
 - **Vercel** — `api/server.mjs` is the single serverless entry that wraps the Express app
-  (`vercel.json` builds it via `server:build`). **Production deploys must go through the
-  Vercel CLI** (`vercel login` → `vercel --prod`) — see `../DEPLOY.md`.
+  (`vercel.json` runs `server:build` + `npx expo export --platform web` and bundles
+  `static-build/**`). **Production deploys must go through the Vercel CLI**
+  (`vercel login` → `vercel --prod`) — see `../DEPLOY.md`.
 - **EAS Build → Android Play Store** (`eas.json`, `.github/workflows/eas-build.yml`).
 
 ### ⚠️ Live gotchas (operational knowledge — verify before relying on)
-- **ESLint 10 breaks `npm run lint`.** `package.json` pins `eslint@^10.4.0`, but
-  `eslint-config-expo@~55`'s bundled `eslint-plugin-react` calls `context.getFilename()`,
-  removed in ESLint 10 → `npx expo lint` crashes (`getFilename is not a function`). Fix is
-  to pin `eslint` back to `^9` or override `eslint-plugin-react`. *(open as of 2026-06-01)*
+- **ESLint 10 gotcha RESOLVED (2026-07).** The old crash (`eslint-config-expo@~55` +
+  ESLint 10 → `context.getFilename is not a function`) is gone: `package.json` now pins
+  `eslint@10.6.0` with `eslint-config-expo@~57.0.0` and a flat `eslint.config.js`, and
+  lint was cleaned to zero warnings (PRs #264, #296). `npm run lint` is a working CI gate.
 - **`package-lock.json` drifts.** `npm ci` has failed twice now (PR #169, then again) when a
   dep range was bumped without regenerating the lock. PR #172 re-synced it; consider a CI
   guard (`npm install --package-lock-only` + `git diff --exit-code package-lock.json`).
@@ -41,7 +42,11 @@ shared across client and server.
   Permanent fix = upgrade the FlashFusion team to Vercel Pro.
 - **`typescript@~6.0.3` vs Expo's `typescript@^5`** peer conflict → `.npmrc` sets
   `legacy-peer-deps=true`. Don't remove it without resolving the TS major mismatch.
-- Root `../CLAUDE.md` says "Expo SDK 54 / Node 18+"; actual is **Expo ~55 / Node ≥20.19**.
+- Actual versions: **Expo ~55 / React Native 0.86 / Node ≥20.19** (root `../CLAUDE.md` was reconciled 2026-07-07).
+- **Auth is Supabase, not Firebase** — `server/auth.ts` verifies Supabase JWTs
+  (`SUPABASE_SERVICE_ROLE_KEY` + Supabase URL); client uses `EXPO_PUBLIC_SUPABASE_URL` +
+  `EXPO_PUBLIC_SUPABASE_ANON_KEY` (`lib/AuthContext.tsx`). Older docs mentioning
+  `FIREBASE_SERVICE_ACCOUNT_KEY` are historical.
 
 ## AI Context
 
@@ -54,12 +59,12 @@ project:
   status: active (canonical v5); separate from the dormant local "infinity-heroes" repo
 stack:
   language: TypeScript (strict; tsconfig)
-  client: Expo ~55 / React Native 0.85 (New Arch) / Expo Router v6 / react-native-web
+  client: Expo ~55 / React Native 0.86 (New Arch) / Expo Router v6 / react-native-web
   state: TanStack React Query v5 + React Context; AsyncStorage for local persistence
   server: Express 5 (server/index.ts) — esbuild bundle → server_dist; tsx for dev
   db: PostgreSQL + Drizzle ORM (drizzle-kit push); voice-chat features only
   ai: multi-provider router (server/ai/) — Anthropic, Gemini, OpenAI, +fallbacks; ElevenLabs TTS
-  auth: Firebase Admin (optional, gated on FIREBASE_SERVICE_ACCOUNT_KEY)
+  auth: Supabase Auth (optional, gated on SUPABASE_SERVICE_ROLE_KEY + Supabase URL)
   packageManager: npm (>=10); node ">=20.19 <21 || >=22.13 <23"
 structure:
   client: app/            # Expo Router screens: welcome, story, quick-create, madlibs, sleep-setup, trophies, settings, (tabs)
@@ -72,7 +77,7 @@ commands:
   dev_server: npm run server:dev      # tsx server/index.ts
   build_server: npm run server:build  # esbuild → server_dist
   prod_server: npm run server:prod
-  lint: npm run lint                  # npx expo lint — BROKEN under eslint 10 (see gotchas)
+  lint: npm run lint                  # npx expo lint (eslint 10.6 + flat config — working)
   typecheck: npm run typecheck        # tsc --noEmit
   test: npm run test                  # vitest run (also :watch, :coverage)
   db: npm run db:push                 # drizzle-kit
