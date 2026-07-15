@@ -16,9 +16,10 @@ repo's actual `main`.** Checked directly (this repo's live GitHub state, not
 a possibly-stale local checkout):
 
 - `main` is still the **pre-merge** codebase: Firebase Admin auth (not
-  Supabase), Expo SDK 54 / React Native 0.86.0 (per `package.json`, not the
-  0.85 this repo's own `CLAUDE.md` still cites), plaintext parent-controls PIN,
-  `server/routes.ts` as one ~550-line file, no content-safety guard, no
+  Supabase), Expo ~55.0.27 / React Native 0.86.0 per `package.json` (not the
+  Expo SDK 54 / React Native 0.85 this repo's own `CLAUDE.md` still cites —
+  dependencies have moved on without the docs), plaintext parent-controls
+  PIN, `server/routes.ts` as one ~550-line file, no content-safety guard, no
   cloud sync, no COPPA consent screen.
 - `krosebrook/bedtime_chronicles-v2` (the other sibling repo) got a real
   convergence PR (#3, "adopt canonical v5 super-version tree") — this repo
@@ -30,8 +31,8 @@ The most recent CI run on `main` (run `29221776371`, 2026-07-13) fails at
 the "Verify package-lock.json is in sync with package.json" step — before
 lint, test, typecheck, or `npm audit` even run, so this repo has had **zero
 CI visibility** since then. Reproduced locally with the exact command CI
-uses (`npm install --package-lock-only --ignore-scripts && git diff --exit-code
-package-lock.json`): it fails because `package-lock.json` is missing `libc`
+uses (`npm install --package-lock-only --ignore-scripts && git diff --exit-code package-lock.json`):
+it fails because `package-lock.json` is missing `libc`
 metadata fields that the installed npm version regenerates. This is the
 exact drift class this repo's own `.claude/CLAUDE.md`-equivalent gotcha
 already warns about.
