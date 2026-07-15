@@ -16,7 +16,8 @@ repo's actual `main`.** Checked directly (this repo's live GitHub state, not
 a possibly-stale local checkout):
 
 - `main` is still the **pre-merge** codebase: Firebase Admin auth (not
-  Supabase), Expo SDK 54 / React Native 0.85, plaintext parent-controls PIN,
+  Supabase), Expo SDK 54 / React Native 0.86.0 (per `package.json`, not the
+  0.85 this repo's own `CLAUDE.md` still cites), plaintext parent-controls PIN,
   `server/routes.ts` as one ~550-line file, no content-safety guard, no
   cloud sync, no COPPA consent screen.
 - `krosebrook/bedtime_chronicles-v2` (the other sibling repo) got a real
@@ -39,6 +40,16 @@ already warns about.
 `npm install --package-lock-only --ignore-scripts` (matching CI's own
 verification step exactly). The diff is an 18-line removal of stale `libc`
 fields — mechanical, no dependency version changes.
+
+Confirmed on this PR's own CI run: the lockfile-sync check and `npm ci` now
+both pass. The "Lint and Test" and "Security Agent" jobs get further than
+before and then fail on `npm run preflight` / `node agents/security/index.js`
+— both `Cannot find module`, because `scripts/preflight.js` and
+`agents/security/index.js` don't exist in this repo either. Same root cause
+as Finding 1 (this tree predates the tooling the canonical repo added), not
+a new problem — not chasing these individually here since the real fix is
+the convergence in the Recommendation below, not a series of missing-file
+patches.
 
 ## Recommendation
 
