@@ -1,3 +1,10 @@
+> [!IMPORTANT]
+> **ARCHIVED PUBLIC MIRROR — NO ACTIVE DEVELOPMENT**
+>
+> The canonical repository is [ChaosClubCo/Infinite-Heros-Bedtime-Chronicles-v5](https://github.com/ChaosClubCo/Infinite-Heros-Bedtime-Chronicles-v5). It is private, so the link requires authorized organization access. Do not open feature, dependency, security, or release changes in this copy. This repository exists only as a historical/public snapshot and may lag the canonical source.
+
+See [MIRROR_STATUS.md](./MIRROR_STATUS.md) for the non-divergence policy.
+
 # Infinity Heroes: Bedtime Chronicles
 
 <!-- Last verified: 2026-05-05 -->
